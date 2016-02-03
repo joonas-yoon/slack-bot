@@ -1,6 +1,13 @@
 module.exports = function (req, res, next) {
   var problem_id = req.body.text.replace(req.body.trigger_word+' ', '');
   
+  // avoid infinite loop
+  if (req.body.user_name !== 'slackbot' && isNaN(problem_id) == false) {
+    // return res.status(200).json(botPayload);
+  } else {
+    return res.status(200).end();
+  }
+  
   var request = require('request');
   var cheerio = require('cheerio');
   
@@ -33,7 +40,7 @@ module.exports = function (req, res, next) {
     
     infomations.push({
       title: "맞은 사람/제출 (비율)",
-      value: $(getInfo[2]).text() + '/' + $(getInfo[4]).text() + ' ('+ $(getInfo[5]).text() +')',
+      value: $(getInfo[4]).text() + '/' + $(getInfo[2]).text() + ' ('+ $(getInfo[5]).text() +')',
       short: true
     });
     
@@ -44,7 +51,7 @@ module.exports = function (req, res, next) {
       notFound: getTitle !== 'Baekjoon Online Judge',
       attachments: [
           {
-              // "fallback": "New ticket from Andrea Lee - Ticket #1943: Can't rest my password - https://groove.hq/path/to/ticket/1943",
+              fallback: getTitle + ' - ' + url,
               // "pretext": "New ticket from Andrea Lee",
               title: getTitle,
               title_link: url,
@@ -55,18 +62,9 @@ module.exports = function (req, res, next) {
       ],
     };
     
-    if (req.body.user_name !== 'slackbot' && isNaN(problem_id) == false) {
-      if( botPayload.notFound )
-        res.status(200).json(botPayload);
-      else
-        res.status(200).end();
-    }
+    if( botPayload.notFound )
+      res.status(200).json(botPayload);
+    else
+      res.status(200).end();
   });
-  
-  // avoid infinite loop
-  if (req.body.user_name !== 'slackbot' && isNaN(problem_id) == false) {
-    // return res.status(200).json(botPayload);
-  } else {
-    return res.status(200).end();
-  }
 }
