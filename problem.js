@@ -1,7 +1,9 @@
 module.exports = function (req, res, next) {
   var stripedText = req.body.text.replace(/(\s)/gi, '');
-  var showDetail = stripedText.match('자세히') != null;
-  var problem_id = stripedText.replace(req.body.trigger_word, '').replace('자세히', '');
+  var showDetail = stripedText.match('자세히|\\+') != null;
+  var problem_id = stripedText.replace(req.body.trigger_word, '').replace('자세히','').replace('\+','');
+  
+  console.log(req.body.user_name +' > '+ stripedText);
   
   // avoid infinite loop
   if (req.body.user_name !== 'slackbot' && isNaN(problem_id) == false) {
