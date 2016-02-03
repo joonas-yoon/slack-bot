@@ -1,9 +1,10 @@
 module.exports = function (req, res, next) {
   var stripedText = req.body.text.replace(/(\s)/gi, '');
-  var showDetail = stripedText.match('자세히|\\+') != null;
-  var problem_id = stripedText.replace(req.body.trigger_word, '').replace('자세히','').replace('\+','');
   
   console.log(req.body.user_name +' > '+ stripedText);
+  
+  var showDetail = stripedText.match('자세히|\\+') != null;
+  var problem_id = stripedText.replace(req.body.trigger_word, '').replace('자세히','').replace('\+','');
   
   // avoid infinite loop
   if (req.body.user_name !== 'slackbot' && isNaN(problem_id) == false) {
@@ -53,7 +54,7 @@ module.exports = function (req, res, next) {
       });
       
       var description = $("#problem_description").text().replace(/(^\s*)|(\s*$)/gi, "");
-      var descriptLimit = 200;
+      var descriptLimit = 500;
       
       botPayload = {
         notFound: getTitle !== 'Baekjoon Online Judge',
@@ -64,8 +65,9 @@ module.exports = function (req, res, next) {
                 title: getTitle,
                 title_link: url,
                 fields: infomations,
-                text: description.substr(0, descriptLimit)+(description.length > descriptLimit ? '...':''),
+                text: '&gt;&gt;&gt; '+ description.substr(0, descriptLimit)+(description.length > descriptLimit ? '...':''),
                 color: "#7CD197",
+                mrkdwn_in: ["text", "pretext"],
             }
         ],
       };
