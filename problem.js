@@ -1,5 +1,7 @@
 module.exports = function (req, res, next) {
-  var problem_id = req.body.text.replace(req.body.trigger_word+' ', '');
+  var stripedText = req.body.text.replace(/(\s)/gi, '');
+  var showDetail = stripedText.match('자세히') != null;
+  var problem_id = stripedText.replace(req.body.trigger_word, '').replace('자세히', '');
   
   // avoid infinite loop
   if (req.body.user_name !== 'slackbot' && isNaN(problem_id) == false) {
@@ -15,52 +17,69 @@ module.exports = function (req, res, next) {
   
   request(url, function(err, resp, body){
     $ = cheerio.load(body);
-    getTitle = $('title').text();
-    getInfo = $("table#problem-info tbody tr td");
-    getInfoHead = $("table#problem-info thead tr th");
+    var getTitle = $('title').text();
     
-    infomations = [];
+    var botPayload = null;
     
-    // $(getInfoHead).each(function(i, head){
-    //   infomations.push({
-    //     title: $(head).text(),
-    //     short: true
-    //   })
-    // });
+    if( showDetail === true ){
+      var getInfo = $("table#problem-info tbody tr td");
+      var getInfoHead = $("table#problem-info thead tr th");
       
-    // $(getInfo).each(function(i, info){
-    //   infomations[i].value = $(info).text();
-    // });
-    
-    infomations.push({
-      title: "시간/메모리 제한",
-      value: $(getInfo[0]).text() + '/' + $(getInfo[1]).text(),
-      short: true
-    });
-    
-    infomations.push({
-      title: "맞은 사람/제출 (비율)",
-      value: $(getInfo[4]).text() + '/' + $(getInfo[2]).text() + ' ('+ $(getInfo[5]).text() +')',
-      short: true
-    });
-    
-    description = $("#problem_description").text().replace(/(^\s*)|(\s*$)/gi, "");
-    descriptLimit = 200;
-    
-    var botPayload = {
-      notFound: getTitle !== 'Baekjoon Online Judge',
-      attachments: [
-          {
-              fallback: getTitle + ' - ' + url,
-              // "pretext": "New ticket from Andrea Lee",
-              title: getTitle,
-              title_link: url,
-              fields: infomations,
-              text: description.substr(0, descriptLimit)+(description.length > descriptLimit ? '...':''),
-              color: "#7CD197",
-          }
-      ],
-    };
+      var infomations = [];
+      
+      // $(getInfoHead).each(function(i, head){
+      //   infomations.push({
+      //     title: $(head).text(),
+      //     short: true
+      //   })
+      // });
+        
+      // $(getInfo).each(function(i, info){
+      //   infomations[i].value = $(info).text();
+      // });
+      
+      infomations.push({
+        title: "시간/메모리 제한",
+        value: $(getInfo[0]).text() + '/' + $(getInfo[1]).text(),
+        short: true
+      });
+      
+      infomations.push({
+        title: "맞은 사람/제출 (비율)",
+        value: $(getInfo[4]).text() + '/' + $(getInfo[2]).text() + ' ('+ $(getInfo[5]).text() +')',
+        short: true
+      });
+      
+      var description = $("#problem_description").text().replace(/(^\s*)|(\s*$)/gi, "");
+      var descriptLimit = 200;
+      
+      botPayload = {
+        notFound: getTitle !== 'Baekjoon Online Judge',
+        attachments: [
+            {
+                fallback: getTitle + ' - ' + url,
+                // "pretext": "New ticket from Andrea Lee",
+                title: getTitle,
+                title_link: url,
+                fields: infomations,
+                text: description.substr(0, descriptLimit)+(description.length > descriptLimit ? '...':''),
+                color: "#7CD197",
+            }
+        ],
+      };
+    } else {
+      botPayload = {
+        notFound: getTitle !== 'Baekjoon Online Judge',
+        attachments: [
+            {
+                fallback: getTitle + ' - ' + url,
+                title: getTitle,
+                title_link: url,
+                color: "#36a64f",
+            }
+        ],
+      };
+    }
     
     if( botPayload.notFound )
       res.status(200).json(botPayload);
