@@ -11,6 +11,67 @@ module.exports = function (req, res, next) {
     return res.status(200).end();
   }
   
+  var search = function(res, searchQuery) {
+    
+    var url = 'https://aewewtnd4p-dsn.algolia.net/1/indexes/*/queries?x-algolia-api-key=40fa3b88d4994a18f89e692619c9f3f3&x-algolia-application-id=AEWEWTND4P&x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.11.0';
+    
+    var requestBody = {requests:[
+      {
+        "indexName":"Problems",
+        "params":"query=" + searchQuery + "&page=0&facets=%5B%5D&tagFilters="
+      }
+    ]};
+
+    var options = {
+      url: url,
+      method: "POST",
+      json: true,
+      headers: {
+        referer: 'https://www.acmicpc.net/search'
+      },
+      
+      body: requestBody
+    };
+
+    request(options, function(err, resp, body){
+      $ = cheerio.load(body);
+      var getResults = body.results[0];
+      var problemObject = getResults.hits[0];
+      
+      // console.log(problemObject);
+      
+      if( getResults.nbHits < 1 ){
+        res.status(200).json({
+          text: '검색 결과가 없습니다.'
+        });
+      }
+      else {
+        // var description = problemObject.description;
+        var description = problemObject._snippetResult.description.value;
+        var descriptLimit = 150;
+        
+        var botPayload = {
+          attachments: [
+              {
+                  fallback: '\''+searchQuery+'\'에 대한 문제 검색',
+                  pretext: '혹시 이 문제를 찾고 계신가요?',
+                  title: problemObject.id + '번 - ' + problemObject.title,
+                  title_link: 'https://www.acmicpc.net/problem/' + problemObject.id,
+                  text:
+                    description.replace(/<\/?strong>/g, '*').substr(0, descriptLimit)+(description.length > descriptLimit ? '...':'')
+                    + '\n\n<' + encodeURI('https://www.acmicpc.net/search#q=' + searchQuery + '&c=Problems')
+                    + '|검색 결과 더보기 ('+ getResults.nbHits + '개)>',
+                  color: "#9b59b6",
+                  mrkdwn_in: ["text"]
+              }
+          ],
+        };
+        
+        res.status(200).json(botPayload);
+      }
+    });
+  };
+  
   var searchQuery = null;
     
   if( isNaN(botQueryString) == true ){
@@ -98,72 +159,14 @@ module.exports = function (req, res, next) {
         };
       }
       
-      if( botPayload.notFound )
+      if( botPayload.notFound ){
         res.status(200).json(botPayload);
-      else
-        res.status(200).end();
+      } else {
+        search(res, problem_id);
+      }
     });
   }
   else {
-    req.headers['referer'] = 'https://www.acmicpc.net/search';
-    // console.log(req.headers);
-    
-    var url = 'https://aewewtnd4p-dsn.algolia.net/1/indexes/*/queries?x-algolia-api-key=40fa3b88d4994a18f89e692619c9f3f3&x-algolia-application-id=AEWEWTND4P&x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%203.11.0';
-    
-    var requestBody = {requests:[
-      {
-        "indexName":"Problems",
-        "params":"query=" + searchQuery + "&page=0&facets=%5B%5D&tagFilters="
-      }
-    ]};
-
-    var options = {
-      url: url,
-      method: "POST",
-      json: true,
-      headers: {
-        referer: 'https://www.acmicpc.net/search'
-      },
-      
-      body: requestBody
-    };
-
-    request(options, function(err, resp, body){
-      $ = cheerio.load(body);
-      var getResults = body.results[0];
-      var problemObject = getResults.hits[0];
-      
-      // console.log(problemObject);
-      
-      if( getResults.nbHits < 1 ){
-        res.status(200).json({
-          text: '검색 결과가 없습니다.'
-        });
-      }
-      else {
-        // var description = problemObject.description;
-        var description = problemObject._snippetResult.description.value;
-        var descriptLimit = 150;
-        
-        var botPayload = {
-          attachments: [
-              {
-                  fallback: '\''+searchQuery+'\'에 대한 문제 검색',
-                  pretext: '혹시 이 문제를 찾고 계신가요?',
-                  title: problemObject.id + '번 - ' + problemObject.title,
-                  title_link: 'https://www.acmicpc.net/problem/' + problemObject.id,
-                  text:
-                    description.replace(/<\/?strong>/g, '*').substr(0, descriptLimit)+(description.length > descriptLimit ? '...':'')
-                    + '\n\n<' + encodeURI('https://www.acmicpc.net/search#q=' + searchQuery + '&c=Problems')
-                    + '|검색 결과 더보기 ('+ getResults.nbHits + '개)>',
-                  color: "#9b59b6",
-                  mrkdwn_in: ["text"]
-              }
-          ],
-        };
-        
-        res.status(200).json(botPayload);
-      }
-    });
+    search(res, searchQuery);
   }
 };
