@@ -1,10 +1,12 @@
 module.exports = function (req, res, next) {
-  var stripedText = req.body.text.replace(/(\s)/gi, '');
+  var originalText = req.body.text;
   
-  console.log(req.body.user_name +' > '+ stripedText);
+  var showDetail = originalText.match('자세히|\\+') != null;
+  var botQueryString = originalText.replace(req.body.trigger_word, '').replace(['자세히','\+'],'');
   
-  var showDetail = stripedText.match('자세히|\\+') != null;
-  var botQueryString = stripedText.replace(req.body.trigger_word, '').replace('자세히','').replace('\+','');
+  var stripedText = botQueryString.replace(/(\s)/gi, '');
+  
+  console.log(req.body.user_name +' > '+ originalText);
   
   // avoid infinite loop
   if (req.body.user_name === 'slackbot') {
@@ -48,7 +50,7 @@ module.exports = function (req, res, next) {
       else {
         // var description = problemObject.description;
         var description = problemObject._snippetResult.description.value;
-        var descriptLimit = 150;
+        var descriptLimit = 250;
         
         var botPayload = {
           attachments: [
@@ -72,21 +74,19 @@ module.exports = function (req, res, next) {
     });
   };
   
-  var searchQuery = null;
-    
-  if( isNaN(botQueryString) == true ){
-    searchQuery = stripedText.replace(req.body.trigger_word, '');
-  }
-  
   var request = require('request');
   var cheerio = require('cheerio');
+  
+  var searchQuery = null;
+  
+  if( isNaN(stripedText) == true ){
+    searchQuery = botQueryString;
+  }
     
   // 문제 번호가 입력된 상황
-  if( !searchQuery ){
+  if( searchQuery == null ){
     
-    var problem_id = botQueryString;
-    
-    if( isNaN(problem_id) ) res.status(200).end();
+    var problem_id = stripedText;
     
     var url = 'https://www.acmicpc.net/problem/' + problem_id;
     
@@ -131,7 +131,7 @@ module.exports = function (req, res, next) {
         var descriptLimit = 500;
         
         botPayload = {
-          notFound: getTitle !== 'Baekjoon Online Judge',
+          notFound: getTitle == 'Baekjoon Online Judge',
           attachments: [
               {
                   fallback: getTitle + ' - ' + url,
@@ -147,7 +147,7 @@ module.exports = function (req, res, next) {
         };
       } else {
         botPayload = {
-          notFound: getTitle !== 'Baekjoon Online Judge',
+          notFound: getTitle == 'Baekjoon Online Judge',
           attachments: [
               {
                   fallback: getTitle + ' - ' + url,
@@ -159,11 +159,10 @@ module.exports = function (req, res, next) {
         };
       }
       
-      if( botPayload.notFound ){
+      if( botPayload.notFound )
+        res.status(200).end();
+      else
         res.status(200).json(botPayload);
-      } else {
-        search(res, problem_id);
-      }
     });
   }
   else {
