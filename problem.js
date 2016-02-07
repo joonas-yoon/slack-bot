@@ -1,8 +1,7 @@
 module.exports = function (req, res, next) {
   var originalText = req.body.text;
   
-  var showDetail = originalText.match('자세히|\\+') != null;
-  var botQueryString = originalText.replace(req.body.trigger_word, '').replace(['자세히','\+'],'');
+  var botQueryString = originalText.replace(req.body.trigger_word, '');
   
   var stripedText = botQueryString.replace(/(\s)/gi, '');
   
@@ -51,7 +50,7 @@ module.exports = function (req, res, next) {
         // var description = problemObject.description;
         var description = problemObject._snippetResult.description.value;
         description = description.replace(/<strong>/g, ' *').replace(/<\/strong>/g, '* ');
-        description = description.replace(/\s{2,}/g, ' ').replace(/(\r\n|\n){2,}/g, '\n');
+        description = description.replace(/\s{2,}/g, ' ').replace(/(\r\n|\n){2,}/g, '\\n');
         var descriptLimit = 250;
         
         var botPayload = {
@@ -81,14 +80,16 @@ module.exports = function (req, res, next) {
   
   var searchQuery = null;
   
-  if( isNaN(stripedText) == true ){
+  var stripedTextDetail = stripedText.replace('자세히', '').replace('\+', '');
+  
+  if( isNaN(stripedTextDetail) == true ){
     searchQuery = botQueryString;
   }
     
   // 문제 번호가 입력된 상황
   if( searchQuery == null ){
     
-    var problem_id = stripedText;
+    var problem_id = stripedTextDetail;
     
     var url = 'https://www.acmicpc.net/problem/' + problem_id;
     
@@ -100,7 +101,11 @@ module.exports = function (req, res, next) {
      
       var botPayload = null;
       
-      if( showDetail === true ){
+      console.log(stripedText);
+      
+      if( stripedText.match('자세히|\\+') != null ){
+        // 자세히 보기
+        
         var getInfo = $("table#problem-info tbody tr td");
         var getInfoHead = $("table#problem-info thead tr th");
         
@@ -130,6 +135,8 @@ module.exports = function (req, res, next) {
         });
         
         var description = $("#problem_description").text().replace(/(^\s*)|(\s*$)/gi, "");
+        description = description.replace(/<strong>/g, ' *').replace(/<\/strong>/g, '* ');
+        description = description.replace(/\s{2,}/g, ' ').replace(/(\r\n|\n){2,}/g, '\\n');
         var descriptLimit = 500;
         
         botPayload = {
