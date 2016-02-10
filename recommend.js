@@ -4,6 +4,8 @@ module.exports = function (req, res, next) {
   if(user_name == '')
     user_name = req.body.user_name;
   
+  console.log(req.body.user_name +'(for recommed)> '+ user_name);
+  
   // avoid infinite loop
   if (req.body.user_name === 'slackbot') {
     return res.status(200).end();
@@ -21,13 +23,22 @@ module.exports = function (req, res, next) {
     var getPid = $("table tr td a[href]");
     var getStar = $("table tr td .bg .fg");
     var result = '';
+    var notFound = false;
     for(var i=0; i<3; ++i){
-      var getStarStyle = (getStar[i]).attribs.style.toString();
-      getStarStyle = getStarStyle.match(/width\:([0-9]+)/i);
+      var temp = getStar[i];
+      if(temp && temp.attribs) temp = temp.attribs;
+      if(temp && temp.style)   temp = temp.style.toString();
+      if(temp && temp.attribs) temp = temp.match(/width\:([0-9]+)/i);
+      var getStarStyle = temp;
       
       var getProblemUrl = getPid[i].attribs.href;
       var getStarSize = 0;
       if(getStarStyle != null) getStarSize = parseInt(getStarStyle[1])*.5;
+      
+      if(getProblemUrl == 'http://icpc.me/1000'){
+        notFound = true;
+        break;
+      }
       
       result += getProblemUrl +' (★ '+ getStarSize +'/100)\n';
     }
@@ -43,10 +54,11 @@ module.exports = function (req, res, next) {
           }
       ],
     };
-
-    if( botPayload.notFound )
+    
+    if( notFound )
       res.status(200).end();
     else
       res.status(200).json(botPayload);
+      
   });
 };
