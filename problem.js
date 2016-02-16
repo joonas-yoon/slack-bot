@@ -5,7 +5,9 @@ module.exports = function (req, res, next) {
   
   var stripedText = botQueryString.replace(/(\s)/gi, '');
   
-  console.log(req.body.user_name +' > '+ originalText);
+  var logDate = new Date();
+  logDate.setHours(logDate.getHours()+9);
+  console.log(logDate.toString() +' ' + req.body.user_name +' > '+ originalText);
   
   // avoid infinite loop
   if (req.body.user_name === 'slackbot') {
@@ -101,7 +103,7 @@ module.exports = function (req, res, next) {
      
       var botPayload = null;
       
-      console.log(stripedText);
+      // console.log(stripedText);
       
       if( stripedText.match('자세히|\\+') != null ){
         // 자세히 보기
