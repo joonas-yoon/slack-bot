@@ -4,7 +4,9 @@ module.exports = function (req, res, next) {
   if(user_name == '')
     user_name = req.body.user_name;
   
-  console.log(req.body.user_name +'(for recommend)> '+ user_name);
+  var logDate = new Date();
+  logDate.setHours(logDate.getHours()+9);
+  console.log(logDate.toString() +' ' + req.body.user_name +'(for recommend)> '+ user_name);
   
   // avoid infinite loop
   if (req.body.user_name === 'slackbot') {
@@ -24,23 +26,31 @@ module.exports = function (req, res, next) {
     var getStar = $("table tr td .bg .fg");
     var result = '';
     var notFound = false;
-    for(var i=0; i<3; ++i){
+    for(var i=0; i<5; ++i){
       var temp = getStar[i];
       if(temp && temp.attribs) temp = temp.attribs;
       if(temp && temp.style)   temp = temp.style.toString();
       if(temp) temp = temp.match(/width\:([0-9]+)/i);
       var getStarStyle = temp;
       
-      var getProblemUrl = getPid[i].attribs.href;
+      temp = null;
+      if(getPid != null) temp = getPid[i];
+      if(temp && temp.attribs) temp = getPid[i].attribs;
+      if(temp && temp.href)    temp = temp.href;
+      var getProblemUrl = temp;
       var getStarSize = 0;
       if(getStarStyle != null && getStarStyle[1]) getStarSize = parseInt(getStarStyle[1])*.5;
       
-      if(getProblemUrl == 'http://icpc.me/1000'){
+      if(!getProblemUrl || getProblemUrl == 'http://icpc.me/1000'){
         notFound = true;
         break;
       }
       
-      result += getProblemUrl +' (★ '+ getStarSize +'/100)\n';
+      var starRating = "";
+      for(var k=0; k<Math.floor(getStarSize/10); ++k) starRating += '★';
+      if(Math.floor(getStarSize)%10 > 4) starRating += '☆';
+      
+      result += getProblemUrl +' (' + starRating +' '+ getStarSize +'/100)\n';
     }
     
     var botPayload = {

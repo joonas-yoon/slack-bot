@@ -84,7 +84,7 @@ module.exports = function (req, res, next) {
   
   var stripedTextDetail = stripedText.replace('자세히', '').replace('\+', '');
   
-  if( isNaN(stripedTextDetail) == true ){
+  if( stripedTextDetail.match(/[^0-9]+/) != null ){
     searchQuery = botQueryString;
   }
     
