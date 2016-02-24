@@ -5,9 +5,7 @@ module.exports = function (req, res, next) {
   
   var stripedText = botQueryString.replace(/(\s)/gi, '');
   
-  var logDate = new Date();
-  logDate.setHours(logDate.getHours()+9);
-  console.log(logDate.toString() +' ' + req.body.user_name +' > '+ originalText);
+  console.log((new Date()).toString() +' ' + req.body.user_name +' > '+ originalText);
   
   // avoid infinite loop
   if (req.body.user_name === 'slackbot') {

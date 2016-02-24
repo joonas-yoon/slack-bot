@@ -4,9 +4,7 @@ module.exports = function (req, res, next) {
   if(user_name == '')
     user_name = req.body.user_name;
   
-  var logDate = new Date();
-  logDate.setHours(logDate.getHours()+9);
-  console.log(logDate.toString() +' ' + req.body.user_name +'(for recommend)> '+ user_name);
+  console.log((new Date()).toString() +' ' + req.body.user_name +'(for recommend)> '+ user_name);
   
   // avoid infinite loop
   if (req.body.user_name === 'slackbot') {
