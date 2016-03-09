@@ -55,7 +55,7 @@ module.exports = function (req, res, next) {
       attachments: [
           {
               fallback: user_name+'님을 위한 문제 추천',
-              pretext: '이 문제를 풀어보세요!',
+              pretext: '@' + user_name + '님, 이 문제를 풀어보세요!',
               text: result + '\n\n<' + url +'|문제 추천 더 보기>',
               color: "#9b59b6",
               mrkdwn_in: ["text"]
