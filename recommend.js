@@ -39,7 +39,7 @@ module.exports = function (req, res, next) {
       var getStarSize = 0;
       if(getStarStyle != null && getStarStyle[1]) getStarSize = parseInt(getStarStyle[1])*.5;
       
-      if(!getProblemUrl || getProblemUrl == 'http://icpc.me/1000'){
+      if(!getProblemUrl || getStarSize < 5){
         notFound = true;
         break;
       }
