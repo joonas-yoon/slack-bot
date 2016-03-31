@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 
 var problem_bot = require('./problem');
 var recommend_bot = require('./recommend');
+var pinocchio_bot = require('./pinocchio');
 // var rank_bot = require('./rank');
   
 var app = express();
@@ -16,6 +17,7 @@ app.get('/', function (req, res) { res.status(200).send('Hello world!') });
 
 app.post('/problem', problem_bot);
 app.post('/recommend', recommend_bot);
+app.post('/pinocchio', pinocchio_bot);
 // app.post('/rank', rank_bot);
 app.get('/log', function (req, res) {
   var fileSystem = require('fs');
