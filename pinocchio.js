@@ -9,7 +9,7 @@ module.exports = function (req, res, next) {
   var botPayload = null;
   var notFound = false;
   var fs = require('fs');
-  var fakeMessages = JSON.parse(fs.readFileSync('pinocchio.dat', 'utf8'));
+  var fakeMessages = JSON.parse(fs.readFileSync('pinocchio.json', 'utf8'));
   
   var rand = function(){return Math.floor(Math.random() * 100000);}
   
@@ -18,7 +18,7 @@ module.exports = function (req, res, next) {
         {
             fallback: user_name+'님을 위한 사실',
             pretext: '그거 아셨나요?',
-            text: fakeMessages[rand()%fakeMessages.length],
+            text: fakeMessages["lies"][rand()%fakeMessages.length],
             color: "#DFA13C",
             mrkdwn_in: ["text"]
         }
